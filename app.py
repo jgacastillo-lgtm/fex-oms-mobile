@@ -4,8 +4,7 @@ import os
 import base64
 
 # --- CONFIGURACIÓN DE PÁGINA INSTITUCIONAL ---
-st.set_page_config(page_title="FEX OMS", page_icon="FEXTRADING2.png", layout="centered")
-
+st.set_page_config(page_title="FEX OMS", page_icon="📱", layout="centered")
 # --- FUNCIÓN PARA CARGAR EL LOGO ---
 def obtener_logo_base64():
     nombre_archivo = "FEXTRADING2.png"
