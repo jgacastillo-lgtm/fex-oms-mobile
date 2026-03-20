@@ -4,10 +4,9 @@ import os
 import base64
 
 # --- CONFIGURACIÓN DE PÁGINA INSTITUCIONAL ---
-# El 'page_icon' configura el favicon y el icono que iOS intentará usar para el home screen
 st.set_page_config(page_title="FEX OMS", page_icon="FEXTRADING2.png", layout="centered")
 
-# --- FUNCIÓN PARA CARGAR EL LOGO (REUTILIZADA) ---
+# --- FUNCIÓN PARA CARGAR EL LOGO ---
 def obtener_logo_base64():
     nombre_archivo = "FEXTRADING2.png"
     if os.path.exists(nombre_archivo):
@@ -15,23 +14,30 @@ def obtener_logo_base64():
             return base64.b64encode(image_file.read()).decode('utf-8')
     return None
 
+logo_b64 = obtener_logo_base64()
+
+# --- TRUCO PARA EL ÍCONO DEL IPHONE (APPLE TOUCH ICON) ---
+if logo_b64:
+    st.markdown(
+        f'<link rel="apple-touch-icon" href="data:image/png;base64,{logo_b64}">',
+        unsafe_allow_html=True
+    )
+
 # --- ESTILOS CSS PERSONALIZADOS (MODO DARK INSTITUCIONAL) ---
 st.markdown("""
     <style>
-    /* Estilos para botones grandes y rojos en iPhone */
     div.stButton > button:first-child {
         height: 60px;
         font-size: 20px;
         font-weight: bold;
         border-radius: 10px;
-        background-color: #ff3333; /* Rojo institucional para el botón principal */
+        background-color: #ff3333;
         border-color: #ff3333;
     }
     div.stButton > button:first-child:active, div.stButton > button:first-child:focus {
         background-color: #cc0000;
         border-color: #cc0000;
     }
-    /* Estilo modo Bloomberg/Trading */
     body {
         background-color: #000000;
         color: #e0e0e0;
@@ -49,8 +55,6 @@ def check_password():
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # Logo centrado en pantalla de Login
-        logo_b64 = obtener_logo_base64()
         if logo_b64:
             st.markdown(
                 f"""
@@ -74,10 +78,7 @@ def check_password():
 
 # --- SI LA CONTRASEÑA ES CORRECTA, MUESTRA LA APP ---
 if check_password():
-    # Cabecera Institucional
-    logo_b64 = obtener_logo_base64()
     if logo_b64:
-        # Mostramos el logo centrado en la parte superior
         st.markdown(
             f"""
             <div style="text-align: center; margin-bottom: 25px;">
@@ -86,7 +87,6 @@ if check_password():
             """,
             unsafe_allow_html=True
         )
-        # st.title("📱 Order Management")
     else:
         st.title("📱 FEX Order Management")
 
@@ -112,7 +112,6 @@ if check_password():
     # --- BOTÓN DE ENVÍO SECRETO ---
     WEBHOOK_URL = st.secrets["WEBHOOK_URL"]
 
-    # Botón con tipo primary para que tome el color rojo que configuramos en el CSS
     if st.button("🚀 GENERAR BORRADOR EN GMAIL", type="primary"):
         if ticker.strip() == "":
             st.error("⚠️ Por favor ingresa un Ticker.")
