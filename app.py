@@ -1,16 +1,40 @@
 import streamlit as st
 import requests
+import os
+import base64
 
-# --- CONFIGURACIÓN DE PÁGINA (Modo Móvil) ---
-st.set_page_config(page_title="FEX OMS", page_icon="📱", layout="centered")
+# --- CONFIGURACIÓN DE PÁGINA INSTITUCIONAL ---
+# El 'page_icon' configura el favicon y el icono que iOS intentará usar para el home screen
+st.set_page_config(page_title="FEX OMS", page_icon="FEXTRADING2.png", layout="centered")
 
+# --- FUNCIÓN PARA CARGAR EL LOGO (REUTILIZADA) ---
+def obtener_logo_base64():
+    nombre_archivo = "FEXTRADING2.png"
+    if os.path.exists(nombre_archivo):
+        with open(nombre_archivo, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+    return None
+
+# --- ESTILOS CSS PERSONALIZADOS (MODO DARK INSTITUCIONAL) ---
 st.markdown("""
     <style>
+    /* Estilos para botones grandes y rojos en iPhone */
     div.stButton > button:first-child {
         height: 60px;
         font-size: 20px;
         font-weight: bold;
         border-radius: 10px;
+        background-color: #ff3333; /* Rojo institucional para el botón principal */
+        border-color: #ff3333;
+    }
+    div.stButton > button:first-child:active, div.stButton > button:first-child:focus {
+        background-color: #cc0000;
+        border-color: #cc0000;
+    }
+    /* Estilo modo Bloomberg/Trading */
+    body {
+        background-color: #000000;
+        color: #e0e0e0;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -20,16 +44,29 @@ def check_password():
     def password_entered():
         if st.session_state["password"] == st.secrets["OMS_PASSWORD"]:
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Elimina la contraseña de la memoria
+            del st.session_state["password"]  
         else:
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        st.markdown("<h2 style='text-align: center;'>🔒 Acceso FEX Trading</h2>", unsafe_allow_html=True)
+        # Logo centrado en pantalla de Login
+        logo_b64 = obtener_logo_base64()
+        if logo_b64:
+            st.markdown(
+                f"""
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <img src="data:image/png;base64,{logo_b64}" width="200">
+                </div>
+                <h2 style='text-align: center; color: #ffb84d;'>🔒 Acceso FEX Trading OMS</h2>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown("<h2 style='text-align: center;'>🔒 Acceso FEX Trading</h2>", unsafe_allow_html=True)
+            
         st.text_input("Ingresa tu PIN de FEX:", type="password", on_change=password_entered, key="password")
         return False
     elif not st.session_state["password_correct"]:
-        st.markdown("<h2 style='text-align: center;'>🔒 Acceso FEX Trading</h2>", unsafe_allow_html=True)
         st.text_input("Ingresa tu PIN de FEX:", type="password", on_change=password_entered, key="password")
         st.error("❌ PIN incorrecto")
         return False
@@ -37,7 +74,21 @@ def check_password():
 
 # --- SI LA CONTRASEÑA ES CORRECTA, MUESTRA LA APP ---
 if check_password():
-    st.title("📱 FEX Order Management")
+    # Cabecera Institucional
+    logo_b64 = obtener_logo_base64()
+    if logo_b64:
+        # Mostramos el logo centrado en la parte superior
+        st.markdown(
+            f"""
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img src="data:image/png;base64,{logo_b64}" width="200">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        # st.title("📱 Order Management")
+    else:
+        st.title("📱 FEX Order Management")
 
     # --- CATÁLOGOS ---
     CASA_BOLSA = {
@@ -58,9 +109,10 @@ if check_password():
     titulos = st.number_input("🔢 Cantidad de Títulos", min_value=1, step=1, format="%d")
     st.divider()
 
-    # --- BOTÓN DE ENVÍO ---
+    # --- BOTÓN DE ENVÍO SECRETO ---
     WEBHOOK_URL = st.secrets["WEBHOOK_URL"]
 
+    # Botón con tipo primary para que tome el color rojo que configuramos en el CSS
     if st.button("🚀 GENERAR BORRADOR EN GMAIL", type="primary"):
         if ticker.strip() == "":
             st.error("⚠️ Por favor ingresa un Ticker.")
